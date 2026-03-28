@@ -55,6 +55,14 @@ export interface MoodboardImage {
   imageData: string; // base64 from Imagen 3
 }
 
+// Structured handoff from video agent + spotify agent → moodboard agent.
+export type MoodboardHandoff = Pick<
+  VibeProfile,
+  "moodboard_prompts" | "suggested_palette" | "mood" | "textures" | "tags"
+> & {
+  tracks: SpotifyTrack[];
+};
+
 export interface VibeResult {
   profile: VibeProfile;
   tracks: SpotifyTrack[];
