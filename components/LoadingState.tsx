@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-const MESSAGES = [
-  "Reading the room...",
-  "Feeling the light...",
-  "Listening closely...",
-  "Translating the vibe...",
-  "Mixing the palette...",
-  "Curating the soundtrack...",
+const MESSAGES: { text: string; font: string; weight?: number; style?: string }[] = [
+  { text: "Reading the room...",        font: "'Playfair Display', serif", weight: 700 },
+  { text: "Feeling the light...",       font: "'Courier New', monospace", weight: 400 },
+  { text: "Listening closely...",       font: "'Brush Script MT', 'Segoe Script', cursive", style: "italic" },
+  { text: "Translating the vibe...",    font: "'Impact', 'Arial Black', sans-serif", weight: 900 },
+  { text: "Mixing the palette...",      font: "'Papyrus', 'Herculanum', fantasy" },
+  { text: "Curating the soundtrack...", font: "'Inter', sans-serif", weight: 300 },
 ];
 
 export default function LoadingState() {
@@ -22,21 +22,33 @@ export default function LoadingState() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center gap-8">
-      <div className="relative w-16 h-16">
-        <div className="absolute inset-0 rounded-full border-2 border-purple-500/30 animate-ping" />
-        <div className="absolute inset-2 rounded-full border-2 border-purple-400/50 animate-pulse" />
-        <div className="absolute inset-4 rounded-full bg-purple-500/20 animate-pulse" />
+    <div className="editorial-page min-h-screen w-full flex flex-col items-center justify-center gap-10 text-center">
+      {/* Thin animated line */}
+      <div className="w-20 h-px bg-[#111] overflow-hidden relative">
+        <div
+          className="absolute inset-0 bg-[#111]"
+          style={{
+            animation: "loading-slide 2s ease-in-out infinite",
+          }}
+        />
       </div>
 
       <p
         key={index}
-        className="text-white/70 text-lg font-light"
+        className="text-[#111] text-3xl font-light tracking-wide"
         style={{
+          fontFamily: MESSAGES[index].font,
+          fontWeight: MESSAGES[index].weight ?? 400,
+          fontStyle: MESSAGES[index].style ?? "normal",
           animation: "fadeInOut 2.5s ease-in-out",
         }}
       >
-        {MESSAGES[index]}
+        {MESSAGES[index].text}
+      </p>
+
+      {/* Subtle subtext */}
+      <p className="editorial-subhead text-[0.65rem] text-[#aaa]">
+        This may take a moment
       </p>
     </div>
   );
