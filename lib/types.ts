@@ -59,7 +59,7 @@ export interface MoodboardImage {
 // Consumed by the frontend to guide grid presentation (anchor prominence,
 // reading order, etc.) once MoodboardPanel supports dynamic layouts.
 export interface MoodboardLayout {
-  anchor_index: number;          // 0–3, zero-indexed cell that is the visual hero
+  anchor_index: number;          // 0–5, zero-indexed cell that is the visual hero
   reading_sequence: string;      // how the eye moves through cells 0→1→2→3
   negative_space_strategy: string;
   palette_story: string;         // color arc across the four images

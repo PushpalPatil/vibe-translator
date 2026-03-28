@@ -13,7 +13,7 @@ export default function MoodboardPanel({ images }: Props) {
 
       <div className="grid grid-cols-2 gap-3">
         {images === null
-          ? Array.from({ length: 4 }).map((_, i) => (
+          ? Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
                 className="skeleton aspect-square rounded-xl"
