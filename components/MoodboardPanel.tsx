@@ -13,7 +13,7 @@ export default function MoodboardPanel({ images }: Props) {
 
       <div className="grid grid-cols-2 gap-3">
         {images === null
-          ? Array.from({ length: 4 }).map((_, i) => (
+          ? Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
                 className="skeleton aspect-square rounded-xl"
@@ -25,7 +25,11 @@ export default function MoodboardPanel({ images }: Props) {
                 className="relative aspect-square rounded-xl overflow-hidden shadow-lg"
               >
                 <img
-                  src={`data:image/png;base64,${img.imageData}`}
+                  src={
+                    img.imageData.startsWith("/") || img.imageData.startsWith("http")
+                      ? img.imageData
+                      : `data:image/png;base64,${img.imageData}`
+                  }
                   alt={img.prompt}
                   className="w-full h-full object-cover"
                 />

@@ -25,7 +25,10 @@ export default function ResultsPage() {
   const [tracks, setTracks] = useState<SpotifyTrack[] | null>(null);
   const [moodboard, setMoodboard] = useState<MoodboardImage[] | null>(null);
 
-  // Load data from sessionStorage
+  // Load full VibeResult from sessionStorage.
+  // The /api/vibe orchestrator runs the complete pipeline (video analysis →
+  // spotify + moodboard in parallel) and stores /api/image/{id} URLs for
+  // moodboard cells instead of base64 blobs, so the payload fits in storage.
   useEffect(() => {
     const stored = sessionStorage.getItem("vibeResult");
     if (!stored) {
@@ -36,43 +39,8 @@ export default function ResultsPage() {
     const data = JSON.parse(stored);
     setProfile(data.profile);
     setFontPair(data.fontPair);
-
-    // Fire parallel requests for Spotify + Moodboard
-    fetch("/api/spotify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mood: data.profile.mood,
-        energy: data.profile.energy,
-        era: data.profile.era,
-        genre_hints: data.profile.genre_hints ?? [],
-        mood_narrative: data.profile.mood_narrative,
-        song_suggestions: data.profile.song_suggestions,
-      }),
-    })
-      .then((r) => r.json())
-      .then((d) => setTracks(d.tracks ?? []))
-      .catch(() => setTracks([]));
-
-    fetch("/api/moodboard", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-          moodboard_prompts: data.profile.moodboard_prompts,
-          mood: data.profile.mood,
-          energy: data.profile.energy,
-          era: data.profile.era,
-          genre_hints: data.profile.genre_hints ?? [],
-          mood_narrative: data.profile.mood_narrative,
-          suggested_palette: data.profile.suggested_palette,
-          textures: data.profile.textures,
-          tags: data.profile.tags,
-          tracks: [], // Spotify resolves in parallel — no tracks available at call time
-        }),
-    })
-      .then((r) => r.json())
-      .then((d) => setMoodboard(d.images ?? []))
-      .catch(() => setMoodboard([]));
+    setTracks(data.tracks ?? []);
+    setMoodboard(data.moodboard ?? []);
   }, [router]);
 
   // Apply dynamic theming
