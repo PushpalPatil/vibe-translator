@@ -1,3 +1,22 @@
+// VibeAnalysis is the structured output of the video_analyze endpoint.
+// It contains the mood/VAD analysis extracted from a video clip.
+export interface VibeAnalysis {
+  vad_scores: {
+    valence: number;    // 0.0-1.0, emotional positivity
+    arousal: number;    // 0.0-1.0, emotional intensity/activation
+    dominance: number;  // 0.0-1.0, sense of power/control
+  };
+  primary_emotion: string;
+  secondary_emotions: string[];
+  temporal_pattern: "STABLE" | "BUILDING" | "FADING" | "MIXED";
+  confidence: number;
+  dominant_modality: "visual" | "audio" | "both";
+  mood_narrative: string;
+  spotify_seed_attributes: SpotifySeedAttributes;
+}
+
+// VibeProfile is the full assembled result combining VibeAnalysis with
+// creative outputs (palette, fonts, song suggestions, moodboard prompts).
 export interface VibeProfile {
   summary: string;
   mood: string[];
@@ -18,18 +37,7 @@ export interface VibeProfile {
   }[];
   moodboard_prompts: string[];
   tags: string[];
-  vad_scores: {
-    valence: number;    // 0-1, emotional positivity
-    arousal: number;    // 0-1, emotional intensity
-    dominance: number;  // 0-1, sense of control
-  };
-  primary_emotion: string;
-  secondary_emotions: string[];
-  temporal_pattern: "STABLE" | "BUILDING" | "DECLINING" | "OSCILLATING" | "PEAK_AND_FADE";
-  confidence: number;
-  dominant_modality: "visual" | "auditory" | "mixed";
-  mood_narrative: string;
-  spotify_seed_attributes: SpotifySeedAttributes;
+  analysis: VibeAnalysis;
 }
 
 export interface SpotifySeedAttributes {
