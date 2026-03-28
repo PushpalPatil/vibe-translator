@@ -18,7 +18,7 @@ export default function Home() {
       const formData = new FormData();
       formData.append("video", file);
 
-      const res = await fetch("/api/analyze", {
+      const res = await fetch("/api/video_analyze", {
         method: "POST",
         body: formData,
       });
