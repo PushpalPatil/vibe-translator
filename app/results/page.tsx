@@ -56,7 +56,18 @@ export default function ResultsPage() {
     fetch("/api/moodboard", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompts: data.profile.moodboard_prompts }),
+      body: JSON.stringify({
+          moodboard_prompts: data.profile.moodboard_prompts,
+          mood: data.profile.mood,
+          energy: data.profile.energy,
+          era: data.profile.era,
+          genre_hints: data.profile.genre_hints ?? [],
+          mood_narrative: data.profile.mood_narrative,
+          suggested_palette: data.profile.suggested_palette,
+          textures: data.profile.textures,
+          tags: data.profile.tags,
+          tracks: [], // Spotify resolves in parallel — no tracks available at call time
+        }),
     })
       .then((r) => r.json())
       .then((d) => setMoodboard(d.images ?? []))

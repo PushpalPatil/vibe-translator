@@ -55,10 +55,29 @@ export interface MoodboardImage {
   imageData: string; // base64 from Imagen 3
 }
 
+// Editorial layout direction produced by the Gemini Step 1 call.
+// Consumed by the frontend to guide grid presentation (anchor prominence,
+// reading order, etc.) once MoodboardPanel supports dynamic layouts.
+export interface MoodboardLayout {
+  anchor_index: number;          // 0–3, zero-indexed cell that is the visual hero
+  reading_sequence: string;      // how the eye moves through cells 0→1→2→3
+  negative_space_strategy: string;
+  palette_story: string;         // color arc across the four images
+  emotional_arc: string;         // emotional journey moving through the board
+}
+
 // Structured handoff from video agent + spotify agent → moodboard agent.
 export type MoodboardHandoff = Pick<
   VibeProfile,
-  "moodboard_prompts" | "suggested_palette" | "mood" | "textures" | "tags"
+  | "moodboard_prompts"
+  | "suggested_palette"
+  | "mood"
+  | "textures"
+  | "tags"
+  | "energy"
+  | "era"
+  | "genre_hints"
+  | "mood_narrative"
 > & {
   tracks: SpotifyTrack[];
 };

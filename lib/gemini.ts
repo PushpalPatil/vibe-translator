@@ -29,12 +29,13 @@ export function getFlashAgentModel(
   config: Parameters<GoogleGenerativeAI["getGenerativeModel"]>[0]
 ): GenerativeModel {
   return genAI.getGenerativeModel({
-    model: "gemini-3-flash-preview",
     ...config,
+    model: config.model ?? "gemini-3-flash-preview",
   });
 }
 
-// Imagen 3 uses the same API key but a different model endpoint.
-export function getImagenModel(): GenerativeModel {
-  return genAI.getGenerativeModel({ model: "imagen-3.0-generate-002" });
+// Image generation via Gemini Flash Image Preview.
+// Uses generateContent with responseModalities: ["IMAGE"] — not the deprecated predict endpoint.
+export function getImageGenModel(): GenerativeModel {
+  return genAI.getGenerativeModel({ model: "gemini-3.1-flash-image-preview" });
 }
