@@ -1,4 +1,5 @@
-import type { VibeAnalysis } from "../types";
+import type { VibeProfile } from "../types";
+import { FONT_VIBE_OPTIONS } from "../fonts";
 
 export interface PromptConfig {
   name: string;
@@ -12,113 +13,178 @@ export interface PromptConfig {
 
 export const VIBE_EXTRACTION_PROMPT: PromptConfig = {
   name: "vibe-extraction",
-  version: "1.0.0",
-  template: `You are a mood extraction agent specialized in affective analysis of short video clips.
-Your goal is to produce a structured mood profile that can be used to generate a Spotify playlist.
+  version: "2.0.0",
+  template: `You are a multimodal vibe analyst. You watch a short video clip and produce a complete structured profile that captures its mood, aesthetic, and cultural energy.
 
 ## ANALYSIS METHODOLOGY
 
-Analyze the provided video using ALL of the following modalities:
+Analyze the video using ALL available modalities:
 
-### 1. Facial & Body Analysis
-- Identify facial action units (raised brows, lip corners, eye squinting) and map them to underlying affect.
-- Note body language: movement speed (fast = high arousal), posture openness, gesture expressiveness.
-- Flag whether emotions appear genuine (symmetric, spontaneous) vs. posed (asymmetric, slower onset).
+### 1. Facial & Body
+- Identify facial action units and map them to affect.
+- Note body language: movement speed, posture, gesture expressiveness.
+- Flag genuine vs. posed emotion.
 
 ### 2. Scene & Visual Context
-- Analyze the dominant color palette. Warm, saturated colors (reds, yellows) correlate with high valence or high arousal. Cool, desaturated palettes (blues, grays) suggest low valence or low arousal.
-- Note lighting: bright/high-contrast = high energy; dim/soft = calm or melancholic.
-- Note environmental context: natural settings evoke different affect than urban or indoor spaces.
+- Dominant color palette. Warm/saturated = high valence or arousal. Cool/desaturated = low.
+- Lighting: bright/high-contrast = energy; dim/soft = calm or melancholic.
+- Environment: natural, urban, indoor — each carries different affect.
 
-### 3. Audio Cues (if audio is present)
-- Analyze speech rate (fast = high arousal), pitch range (wide = expressive, high valence OR high arousal), and vocal energy.
-- Identify background sounds or music and their emotional character.
-- Note the presence of silence or ambient sound.
+### 3. Audio (if present)
+- Speech rate, pitch range, vocal energy.
+- Background sounds or music and their emotional character.
+- Silence or ambient texture.
 
 ### 4. Temporal Dynamics
-- Assess whether the mood is: STABLE, BUILDING, FADING, or MIXED across the clip.
-- Mixed emotions are valid — do not force a single label if multiple affective states coexist.
+- Is the mood STABLE, BUILDING, FADING, or MIXED across the clip?
 
 ---
 
 ## OUTPUT FORMAT
 
-Return a structured JSON with the following fields:
+Return a single JSON object with ALL of the following fields:
 
 {
-  "vad_scores": {
-    "valence": <float 0.0–1.0>,     // 0 = very negative, 1 = very positive
-    "arousal": <float 0.0–1.0>,     // 0 = very calm, 1 = very activated/excited
-    "dominance": <float 0.0–1.0>    // 0 = submissive/delicate, 1 = powerful/dominant
-  },
+  "summary": "<2-3 sentence vibe description>",
+  "mood": ["<3-5 nuanced mood descriptors>"],
+  "energy": <float 0.0-1.0>,
+  "era": "<cultural era, e.g. 'chaotic gen-z', '90s nostalgia', 'y2k maximalism'>",
+  "genre_hints": ["<3-5 music genre hints, e.g. 'hyperpop', 'art pop', 'indie dance'>"],
+  "mood_narrative": "<1-2 sentence plain English description of the mood and its musical implications>",
   "primary_emotion": "<string>",
-  "secondary_emotions": ["<string>", ...],
+  "secondary_emotions": ["<1-2 strings>"],
   "temporal_pattern": "<STABLE|BUILDING|FADING|MIXED>",
-  "confidence": <float 0.0–1.0>,
+  "confidence": <float 0.0-1.0>,
   "dominant_modality": "<visual|audio|both>",
-  "mood_narrative": "<1-2 sentence plain English description of the mood>",
-  "spotify_seed_attributes": {
-    "target_valence": <float 0.0–1.0>,
-    "target_energy": <float 0.0–1.0>,
-    "target_tempo_bpm": <int 60–200>,
-    "target_danceability": <float 0.0–1.0>
-  }
+  "dominant_colors": [{"hex": "#...", "name": "<color name>"}],
+  "suggested_palette": ["<6 hex codes, ordered dark to light>"],
+  "textures": ["<2-3 texture descriptions, e.g. 'film grain', 'soft focus'>"],
+  "sounds": ["<2-3 sound descriptions, e.g. 'vinyl crackle', 'distant bass'>"],
+  "font_vibe": {
+    "display": "<one of: ${FONT_VIBE_OPTIONS.join(", ")}>",
+    "body": "<same value as display>"
+  },
+  "tags": ["<5-8 short vibe hashtags>"],
+  "song_suggestions": [
+    {"artist": "<real artist>", "track": "<real track name>", "why": "<1 sentence>"}
+  ],
+  "moodboard_prompts": [
+    "<4 detailed image generation prompts that visually capture this vibe>"
+  ]
 }
 
 ---
 
 ## IMPORTANT CONSTRAINTS
 
-- Do NOT default to "happy" or "sad" — use nuanced emotion vocabulary (e.g., "wistful", "tense", "triumphant", "dreamy", "melancholic").
-- If valence is ambiguous (mixed emotions), score 0.4–0.6 and note it in \`secondary_emotions\`.
-- When audio and visual signals conflict, weight audio slightly higher for arousal and visual slightly higher for valence (per multimodal research).
-- Always populate \`spotify_seed_attributes\` — this is the primary output consumed downstream.`,
+### Mood & Emotion
+- Do NOT default to "happy" or "sad" — use nuanced vocabulary (wistful, tense, triumphant, dreamy, frenetic, serene).
+- Mixed emotions are valid. If ambiguous, reflect it in secondary_emotions.
+- When audio and visual signals conflict, weight audio for arousal and visual for valence.
 
-  // JSON Schema matching VibeAnalysis. Passed to Gemini's responseSchema for
+### Song Suggestions
+- Suggest 8-10 REAL songs by REAL artists. These will be verified against Spotify.
+- Go beyond obvious choices. Match the specific energy, texture, and era — not just the mood label.
+- Include a mix: some well-known tracks for anchoring, some deeper cuts that truly embody the vibe.
+- The "why" field should explain the sonic/emotional match, not just restate the mood.
+
+### Palette & Colors
+- suggested_palette must be exactly 6 hex codes, ordered darkest to lightest.
+- dominant_colors should have 3-5 entries with both hex and a descriptive name.
+
+### Font Vibe
+- font_vibe.display and font_vibe.body must be the SAME value.
+- Must be one of: ${FONT_VIBE_OPTIONS.join(", ")}
+
+### Moodboard Prompts
+- Exactly 4 prompts. Each should be a detailed image generation prompt (2-3 sentences).
+- They should visually capture the vibe — abstract, atmospheric, textural. Not literal descriptions of the video.
+- Vary the prompts: one close-up/textural, one landscape/environment, one abstract/color-focused, one human/emotional.`,
+
+  // JSON Schema matching VibeProfile. Passed to Gemini's responseSchema for
   // guaranteed structured output, and used by agent frameworks for tool validation.
   outputSchema: {
     type: "object",
     required: [
-      "vad_scores",
+      "summary",
+      "mood",
+      "energy",
+      "era",
+      "genre_hints",
+      "mood_narrative",
       "primary_emotion",
       "secondary_emotions",
       "temporal_pattern",
       "confidence",
       "dominant_modality",
-      "mood_narrative",
-      "spotify_seed_attributes",
+      "dominant_colors",
+      "suggested_palette",
+      "textures",
+      "sounds",
+      "font_vibe",
+      "tags",
+      "song_suggestions",
+      "moodboard_prompts",
     ],
     properties: {
-      vad_scores: {
-        type: "object",
-        required: ["valence", "arousal", "dominance"],
-        properties: {
-          valence: { type: "number", minimum: 0, maximum: 1 },
-          arousal: { type: "number", minimum: 0, maximum: 1 },
-          dominance: { type: "number", minimum: 0, maximum: 1 },
-        },
-      },
+      summary: { type: "string" },
+      mood: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 5 },
+      energy: { type: "number", minimum: 0, maximum: 1 },
+      era: { type: "string" },
+      genre_hints: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 5 },
+      mood_narrative: { type: "string" },
       primary_emotion: { type: "string" },
-      secondary_emotions: { type: "array", items: { type: "string" }, maxItems: 2 },
+      secondary_emotions: { type: "array", items: { type: "string" }, maxItems: 3 },
       temporal_pattern: { type: "string", enum: ["STABLE", "BUILDING", "FADING", "MIXED"] },
       confidence: { type: "number", minimum: 0, maximum: 1 },
       dominant_modality: { type: "string", enum: ["visual", "audio", "both"] },
-      mood_narrative: { type: "string" },
-      spotify_seed_attributes: {
+      dominant_colors: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["hex", "name"],
+          properties: {
+            hex: { type: "string" },
+            name: { type: "string" },
+          },
+        },
+        minItems: 3,
+        maxItems: 5,
+      },
+      suggested_palette: { type: "array", items: { type: "string" }, minItems: 6, maxItems: 6 },
+      textures: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 3 },
+      sounds: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 3 },
+      font_vibe: {
         type: "object",
-        required: ["target_valence", "target_energy", "target_tempo_bpm", "target_danceability"],
+        required: ["display", "body"],
         properties: {
-          target_valence: { type: "number", minimum: 0, maximum: 1 },
-          target_energy: { type: "number", minimum: 0, maximum: 1 },
-          target_tempo_bpm: { type: "integer", minimum: 60, maximum: 200 },
-          target_danceability: { type: "number", minimum: 0, maximum: 1 },
+          display: { type: "string", enum: FONT_VIBE_OPTIONS },
+          body: { type: "string", enum: FONT_VIBE_OPTIONS },
         },
       },
+      tags: { type: "array", items: { type: "string" }, minItems: 5, maxItems: 8 },
+      song_suggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["artist", "track", "why"],
+          properties: {
+            artist: { type: "string" },
+            track: { type: "string" },
+            why: { type: "string" },
+          },
+        },
+        minItems: 8,
+        maxItems: 10,
+      },
+      moodboard_prompts: { type: "array", items: { type: "string" }, minItems: 4, maxItems: 4 },
     },
   } satisfies Record<string, unknown>,
 };
 
-// Type assertion confirming the prompt's outputSchema aligns with VibeAnalysis.
-// This will surface a compile error if the schema drifts from the interface.
-type _VibeAnalysisSchemaCheck = VibeAnalysis extends Record<string, unknown> ? true : true;
-void (0 as unknown as _VibeAnalysisSchemaCheck);
+// Compile-time check: ensure schema keys align with VibeProfile fields.
+type _SchemaKeys = keyof typeof VIBE_EXTRACTION_PROMPT.outputSchema.properties;
+type _ProfileKeys = keyof VibeProfile;
+type _Check = _SchemaKeys extends _ProfileKeys ? true : never;
+const _check: _Check = true;
+void _check;

@@ -22,6 +22,18 @@ export function getFlashModel(overrides?: Parameters<GoogleGenerativeAI["getGene
   );
 }
 
+// Returns a Gemini Flash model configured for agentic tool use (function calling).
+// Unlike getFlashModel, this does NOT set responseMimeType to JSON, because
+// function calling requires text mode so the model can return tool call parts.
+export function getFlashAgentModel(
+  config: Parameters<GoogleGenerativeAI["getGenerativeModel"]>[0]
+): GenerativeModel {
+  return genAI.getGenerativeModel({
+    model: "gemini-3-flash-preview",
+    ...config,
+  });
+}
+
 // Imagen 3 uses the same API key but a different model endpoint.
 export function getImagenModel(): GenerativeModel {
   return genAI.getGenerativeModel({ model: "imagen-3.0-generate-002" });

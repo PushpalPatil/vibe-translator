@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises";
 import { getFlashModel } from "../gemini";
 import { VIBE_EXTRACTION_PROMPT } from "../prompts/vibe-extraction";
-import type { VibeAnalysis } from "../types";
+import type { VibeProfile } from "../types";
 
 export interface AnalyzeVideoInput {
   videoPath: string;
@@ -9,13 +9,13 @@ export interface AnalyzeVideoInput {
 }
 
 export interface AnalyzeVideoOutput {
-  analysis: VibeAnalysis;
+  profile: VibeProfile;
   // Raw response text preserved for debugging / logging
   rawResponse: string;
 }
 
 // Core tool function: reads a video file from disk and returns a structured
-// VibeAnalysis by sending it to Gemini 2.0 Flash as inline base64 data.
+// VibeProfile by sending it to Gemini Flash as inline base64 data.
 //
 // Designed to be importable directly by an orchestrating agent without HTTP.
 // The route handler at app/api/video_analyze/route.ts is a thin wrapper.
@@ -58,25 +58,36 @@ export async function analyzeVideo(input: AnalyzeVideoInput): Promise<AnalyzeVid
     throw new Error(`Gemini returned non-JSON response: ${rawResponse.slice(0, 200)}`);
   }
 
-  const analysis = parsed as VibeAnalysis;
+  const profile = parsed as VibeProfile;
 
   // Lightweight runtime validation of required top-level fields
-  const required: (keyof VibeAnalysis)[] = [
-    "vad_scores",
+  const required: (keyof VibeProfile)[] = [
+    "summary",
+    "mood",
+    "energy",
+    "era",
+    "genre_hints",
+    "mood_narrative",
     "primary_emotion",
     "secondary_emotions",
     "temporal_pattern",
     "confidence",
     "dominant_modality",
-    "mood_narrative",
-    "spotify_seed_attributes",
+    "dominant_colors",
+    "suggested_palette",
+    "textures",
+    "sounds",
+    "font_vibe",
+    "tags",
+    "song_suggestions",
+    "moodboard_prompts",
   ];
 
   for (const field of required) {
-    if (analysis[field] === undefined) {
+    if (profile[field] === undefined) {
       throw new Error(`Gemini response missing required field: ${field}`);
     }
   }
 
-  return { analysis, rawResponse };
+  return { profile, rawResponse };
 }

@@ -2,6 +2,7 @@ import { writeFile, unlink } from "fs/promises";
 import { randomUUID } from "crypto";
 import { join } from "path";
 import { analyzeVideo } from "../../../lib/tools/analyzeVideo";
+import { matchFontPair } from "../../../lib/fonts";
 
 const ACCEPTED_MIME_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"] as const;
 type AcceptedMimeType = (typeof ACCEPTED_MIME_TYPES)[number];
@@ -41,9 +42,12 @@ export async function POST(request: Request): Promise<Response> {
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(tmpPath, buffer);
 
-    const { analysis } = await analyzeVideo({ videoPath: tmpPath, mimeType });
+    const { profile } = await analyzeVideo({ videoPath: tmpPath, mimeType });
 
-    return Response.json({ analysis }, { status: 200 });
+    // Resolve font_vibe key into actual Google Font names
+    const fontPair = matchFontPair(profile.font_vibe.display, profile.font_vibe.body);
+
+    return Response.json({ profile, fontPair }, { status: 200 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unexpected error";
 

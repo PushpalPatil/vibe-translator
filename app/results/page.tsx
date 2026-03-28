@@ -41,8 +41,12 @@ export default function ResultsPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        suggestions: data.profile.song_suggestions,
-        spotifySeedAttributes: data.profile.spotify_seed_attributes,
+        mood: data.profile.mood,
+        energy: data.profile.energy,
+        era: data.profile.era,
+        genre_hints: data.profile.genre_hints ?? [],
+        mood_narrative: data.profile.mood_narrative,
+        song_suggestions: data.profile.song_suggestions,
       }),
     })
       .then((r) => r.json())
