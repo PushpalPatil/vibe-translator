@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --vibe-bg: #0a0a0a;
+  --vibe-surface: #141414;
+  --vibe-accent: #8b5cf6;
+  --vibe-text: #ededed;
+  --vibe-font-display: "Space Grotesk", sans-serif;
+  --vibe-font-body: "Inter", sans-serif;
 }
 
 @theme inline {
@@ -12,15 +18,92 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Results page dynamic theming */
+.results-page {
+  background-color: var(--vibe-bg);
+  color: var(--vibe-text);
+  font-family: var(--vibe-font-body), sans-serif;
+}
+
+.results-page h1,
+.results-page h2,
+.results-page h3 {
+  font-family: var(--vibe-font-display), serif;
+  color: var(--vibe-accent);
+}
+
+.results-page .surface {
+  background-color: var(--vibe-surface);
+}
+
+/* Texture overlay */
+.texture-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* Loading text cycle */
+@keyframes fadeInOut {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  20%,
+  80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Upload zone pulse */
+@keyframes pulse-border {
+  0%,
+  100% {
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    border-color: rgba(139, 92, 246, 0.7);
+  }
+}
+
+.upload-zone {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+.upload-zone:hover {
+  border-color: rgba(139, 92, 246, 0.9);
+  animation: none;
 }
