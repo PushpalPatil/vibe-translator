@@ -24,8 +24,10 @@ export default function ResultsPage() {
   const [tracks, setTracks] = useState<SpotifyTrack[] | null>(null);
   const [moodboard, setMoodboard] = useState<MoodboardImage[] | null>(null);
 
-  // Load profile + tracks + fontPair from sessionStorage (set by /api/vibe orchestrator).
-  // Moodboard is fetched separately — base64 images are too large for sessionStorage.
+  // Load full VibeResult from sessionStorage.
+  // The /api/vibe orchestrator runs the complete pipeline (video analysis →
+  // spotify + moodboard in parallel) and stores /api/image/{id} URLs for
+  // moodboard cells instead of base64 blobs, so the payload fits in storage.
   useEffect(() => {
     const stored = sessionStorage.getItem("vibeResult");
     if (!stored) {
@@ -37,27 +39,7 @@ export default function ResultsPage() {
     setProfile(data.profile);
     setFontPair(data.fontPair);
     setTracks(data.tracks ?? []);
-
-    // Fire moodboard fetch after profile is available — renders progressively
-    fetch("/api/moodboard", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        moodboard_prompts: data.profile.moodboard_prompts,
-        mood: data.profile.mood,
-        energy: data.profile.energy,
-        era: data.profile.era,
-        genre_hints: data.profile.genre_hints ?? [],
-        mood_narrative: data.profile.mood_narrative,
-        suggested_palette: data.profile.suggested_palette,
-        textures: data.profile.textures,
-        tags: data.profile.tags,
-        tracks: data.tracks ?? [],
-      }),
-    })
-      .then((r) => r.json())
-      .then((d) => setMoodboard(d.images ?? []))
-      .catch(() => setMoodboard([]));
+    setMoodboard(data.moodboard ?? []);
   }, [router]);
 
   // Apply dynamic theming

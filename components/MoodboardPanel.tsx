@@ -25,7 +25,11 @@ export default function MoodboardPanel({ images }: Props) {
                 className="relative aspect-square rounded-xl overflow-hidden shadow-lg"
               >
                 <img
-                  src={`data:image/png;base64,${img.imageData}`}
+                  src={
+                    img.imageData.startsWith("/") || img.imageData.startsWith("http")
+                      ? img.imageData
+                      : `data:image/png;base64,${img.imageData}`
+                  }
                   alt={img.prompt}
                   className="w-full h-full object-cover"
                 />
