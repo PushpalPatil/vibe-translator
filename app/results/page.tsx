@@ -24,7 +24,8 @@ export default function ResultsPage() {
   const [tracks, setTracks] = useState<SpotifyTrack[] | null>(null);
   const [moodboard, setMoodboard] = useState<MoodboardImage[] | null>(null);
 
-  // Load data from sessionStorage
+  // Load profile + tracks + fontPair from sessionStorage (set by /api/vibe orchestrator).
+  // Moodboard is fetched separately — base64 images are too large for sessionStorage.
   useEffect(() => {
     const stored = sessionStorage.getItem("vibeResult");
     if (!stored) {
@@ -35,39 +36,24 @@ export default function ResultsPage() {
     const data = JSON.parse(stored);
     setProfile(data.profile);
     setFontPair(data.fontPair);
+    setTracks(data.tracks ?? []);
 
-    // Fire parallel requests for Spotify + Moodboard
-    fetch("/api/spotify", {
+    // Fire moodboard fetch after profile is available — renders progressively
+    fetch("/api/moodboard", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        moodboard_prompts: data.profile.moodboard_prompts,
         mood: data.profile.mood,
         energy: data.profile.energy,
         era: data.profile.era,
         genre_hints: data.profile.genre_hints ?? [],
         mood_narrative: data.profile.mood_narrative,
-        song_suggestions: data.profile.song_suggestions,
+        suggested_palette: data.profile.suggested_palette,
+        textures: data.profile.textures,
+        tags: data.profile.tags,
+        tracks: data.tracks ?? [],
       }),
-    })
-      .then((r) => r.json())
-      .then((d) => setTracks(d.tracks ?? []))
-      .catch(() => setTracks([]));
-
-    fetch("/api/moodboard", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-          moodboard_prompts: data.profile.moodboard_prompts,
-          mood: data.profile.mood,
-          energy: data.profile.energy,
-          era: data.profile.era,
-          genre_hints: data.profile.genre_hints ?? [],
-          mood_narrative: data.profile.mood_narrative,
-          suggested_palette: data.profile.suggested_palette,
-          textures: data.profile.textures,
-          tags: data.profile.tags,
-          tracks: [], // Spotify resolves in parallel — no tracks available at call time
-        }),
     })
       .then((r) => r.json())
       .then((d) => setMoodboard(d.images ?? []))

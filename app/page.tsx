@@ -18,7 +18,7 @@ export default function Home() {
       const formData = new FormData();
       formData.append("video", file);
 
-      const res = await fetch("/api/video_analyze", {
+      const res = await fetch("/api/vibe", {
         method: "POST",
         body: formData,
       });
@@ -30,7 +30,7 @@ export default function Home() {
 
       const data = await res.json();
 
-      // Store in sessionStorage for the results page
+      // Store full VibeResult (profile + tracks + moodboard + fontPair) for the results page
       sessionStorage.setItem("vibeResult", JSON.stringify(data));
       router.push("/results");
     } catch (err: unknown) {
