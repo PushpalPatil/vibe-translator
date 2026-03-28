@@ -8,6 +8,7 @@ import VibeProfileComponent from "@/components/VibeProfile";
 import PalettePanel from "@/components/PalettePanel";
 import PlaylistPanel from "@/components/PlaylistPanel";
 import MoodboardPanel from "@/components/MoodboardPanel";
+import LoadingState from "@/components/LoadingState";
 
 function lighten(hex: string, amount: number): string {
   const num = parseInt(hex.replace("#", ""), 16);
@@ -80,8 +81,8 @@ export default function ResultsPage() {
 
     const palette = profile.suggested_palette;
     const root = document.documentElement;
-    root.style.setProperty("--vibe-bg", lighten(palette[0], 0.85));
-    root.style.setProperty("--vibe-surface", lighten(palette[0], 0.92));
+    root.style.setProperty("--vibe-bg", "#fafaf8");
+    root.style.setProperty("--vibe-surface", lighten(palette[0], 0.96));
     root.style.setProperty("--vibe-accent", palette[2]);
     root.style.setProperty("--vibe-text", palette[0]);
     root.style.setProperty("--vibe-font-display", `"${fontPair.display}"`);
@@ -104,12 +105,11 @@ export default function ResultsPage() {
     };
   }, [profile, fontPair]);
 
-  if (!profile || !fontPair) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <p className="text-white/50">Loading...</p>
-      </div>
-    );
+  // Wait for ALL data before revealing the results page
+  const allLoaded = profile && fontPair && tracks !== null && moodboard !== null;
+
+  if (!allLoaded) {
+    return <LoadingState />;
   }
 
   return (

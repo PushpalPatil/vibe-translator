@@ -30,7 +30,6 @@ export default function Home() {
 
       const data = await res.json();
 
-      // Store in sessionStorage for the results page
       sessionStorage.setItem("vibeResult", JSON.stringify(data));
       router.push("/results");
     } catch (err: unknown) {
@@ -43,23 +42,36 @@ export default function Home() {
   if (isLoading) return <LoadingState />;
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center min-h-screen bg-black px-6">
-      <main className="flex flex-col items-center gap-8 max-w-lg w-full">
+    <div className="editorial-page flex flex-col items-center justify-center min-h-screen px-8 py-16">
+      <main className="flex flex-col items-center gap-15 max-w-md w-full">
+        {/* Overline label */}
+        <p className="editorial-subhead">Vibe Translator</p>
+
+        {/* Headline */}
         <div className="text-center space-y-3">
-          <h1 className="text-4xl font-bold text-white tracking-tight">
+          <h1 className="editorial-headline text-6xl">
             Film your world.
-            <br />
-            <span className="text-purple-400">Get its vibe.</span>
           </h1>
-          <p className="text-white/40 text-sm">
-            Upload a 5-30 second video clip.
-          </p>
+          <h1 className="editorial-headline text-6xl">
+            Get its <span className="editorial-italic">vibe.</span>
+          </h1>
         </div>
+
+        {/* Divider */}
+        <div className="editorial-rule" />
+
+        {/* Description */}
+        <p className="editorial-body text-center text-base leading-relaxed max-w-xs text-xl">
+          Upload a short clip and we&apos;ll translate the feeling into
+          color, sound, and mood.
+        </p>
 
         <VideoUploader onUpload={handleUpload} isLoading={isLoading} />
 
         {error && (
-          <p className="text-red-400 text-sm text-center">{error}</p>
+          <p className="text-red-600 text-sm text-center editorial-body">
+            {error}
+          </p>
         )}
       </main>
     </div>
