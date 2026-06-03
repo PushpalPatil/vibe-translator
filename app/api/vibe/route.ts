@@ -1,7 +1,12 @@
 import { writeFile, unlink } from "fs/promises";
 import { randomUUID } from "crypto";
 import { join } from "path";
+import { del } from "@vercel/blob";
 import { runVibeAgent, type AcceptedMimeType, type VibeAgentResult } from "../../../lib/agents/vibeAgent";
+
+// The full pipeline (Gemini analysis + Spotify + 4x Imagen) can take 30-60s.
+// Vercel's default function timeout is 10s; raise it to the Hobby-plan ceiling.
+export const maxDuration = 60;
 
 const ACCEPTED_MIME_TYPES = [
   "video/mp4",
@@ -22,19 +27,23 @@ function isAcceptedMimeType(type: string): type is AcceptedMimeType {
 // are unchanged and continue to work independently.
 export async function POST(request: Request): Promise<Response> {
   let tmpPath: string | null = null;
+  let blobUrl: string | null = null;
 
   try {
-    const formData = await request.formData();
-    const file = formData.get("video");
+    const { url, mimeType: rawMimeType } = (await request.json()) as {
+      url?: string;
+      mimeType?: string;
+    };
 
-    if (!file || !(file instanceof File)) {
+    if (!url) {
       return Response.json(
-        { error: "Missing required field: video (must be a file)" },
+        { error: "Missing required field: url (Blob upload URL)" },
         { status: 400 }
       );
     }
+    blobUrl = url;
 
-    const mimeType = file.type || "video/mp4";
+    const mimeType = rawMimeType || "video/mp4";
     if (!isAcceptedMimeType(mimeType)) {
       return Response.json(
         {
@@ -54,7 +63,15 @@ export async function POST(request: Request): Promise<Response> {
             : "avi";
 
     tmpPath = join("/tmp", `vibe-${randomUUID()}.${ext}`);
-    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const videoRes = await fetch(url);
+    if (!videoRes.ok) {
+      return Response.json(
+        { error: "Failed to fetch uploaded video from storage" },
+        { status: 502 }
+      );
+    }
+    const buffer = Buffer.from(await videoRes.arrayBuffer());
     await writeFile(tmpPath, buffer);
 
     const result: VibeAgentResult = await runVibeAgent(tmpPath, mimeType);
@@ -85,6 +102,11 @@ export async function POST(request: Request): Promise<Response> {
       await unlink(tmpPath).catch(() => {
         // Non-fatal: temp file cleanup failure shouldn't affect the response
       });
+    }
+    if (blobUrl) {
+      // Remove the uploaded video from Blob storage once processed, so we don't
+      // accumulate orphaned files. Non-fatal if it fails.
+      await del(blobUrl).catch(() => {});
     }
   }
 }
