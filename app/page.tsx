@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 import VideoUploader from "@/components/VideoUploader";
 import LoadingState from "@/components/LoadingState";
 
@@ -15,12 +16,18 @@ export default function Home() {
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("video", file);
+      // Upload the video directly to Vercel Blob (bypasses the 4.5MB serverless
+      // body limit), then hand /api/vibe just the resulting URL.
+      const blob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+        contentType: file.type,
+      });
 
       const res = await fetch("/api/vibe", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: blob.url, mimeType: file.type }),
       });
 
       if (!res.ok) {
