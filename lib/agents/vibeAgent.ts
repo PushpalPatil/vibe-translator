@@ -1,6 +1,5 @@
-import { writeFile } from "fs/promises";
 import { randomUUID } from "crypto";
-import { join } from "path";
+import { put } from "@vercel/blob";
 import { analyzeVideo } from "../tools/analyzeVideo";
 import { searchSpotify } from "../tools/searchSpotify";
 import { generateMoodboard } from "../tools/generateMoodboard";
@@ -53,12 +52,18 @@ function extractMoodboardHandoff(
   };
 }
 
-// Writes a base64 PNG buffer to /tmp and returns the /api/image/{id} URL.
+// Uploads a base64 PNG to Vercel Blob and returns its public CDN URL.
+//
+// Must use Blob, not /tmp: serverless invocations don't share a filesystem, so
+// images written to /tmp during the /api/vibe call 404 when the browser later
+// fetches them in a different container. Blob URLs are durable and CDN-served.
 async function persistImage(sessionId: string, index: number, base64: string): Promise<string> {
-  const id = `${sessionId}-${index}`;
-  const filePath = join("/tmp", `vibe-image-${id}.png`);
-  await writeFile(filePath, Buffer.from(base64, "base64"));
-  return `/api/image/${id}`;
+  const blob = await put(
+    `moodboard/${sessionId}-${index}.png`,
+    Buffer.from(base64, "base64"),
+    { access: "public", contentType: "image/png", addRandomSuffix: true }
+  );
+  return blob.url;
 }
 
 // Deterministic orchestrator for the vibe analysis pipeline.
